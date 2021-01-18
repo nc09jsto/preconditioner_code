@@ -1,5 +1,4 @@
 % Inverse operator b
-tic
 s = 0.5;
 mesh_file = 'UniCircle1.msh';
 
@@ -22,8 +21,6 @@ for i=1:B_nt
 end
 
 aux_ind = reshape( repmat( 1:3:3*B_nt , size(p_T_6,1) , 1 ) , [] , 1 );
-% empty_vtx = zeros(2,3*B_nt);
-% BBm = zeros(2,2*B_nt);
 
 % Main loop
 for l=1:B_nt
@@ -40,15 +37,15 @@ for l=1:B_nt
     nodl = BT(l,:); 
     xl = BP(1 , nodl); yl = BP(2 , nodl);
     Bl = [xl(2)-xl(1) yl(2)-yl(1); xl(3)-xl(2) yl(3)-yl(2)]';
+    
     %identical elements
     B(l, l) = B(l, l) + triangle_quad(Bl,s,B_area(l),p_4D,w_4D,xl,yl)/2; 
     
     if ~isempty(empty)
-
     BBm = reshape( [ empty_vtx( : , 2:3:3*ll )...
         - empty_vtx( : , 1:3:3*ll ) , empty_vtx( : , 3:3:3*ll )...
         - empty_vtx( : , 2:3:3*ll ) ] , [] , 2)' ;
-    %vl = p_T_6*(Bl') + [ones(6,1).*xl(1) ones(6,1).*yl(1)];
+
     vl = Bl*p_T_6' + repmat([xl(1);yl(1)],1,size(p_T_6,1));
     vm = reshape(permute(reshape(p_T_6*BBm(:,1:2*ll),[size(p_T_6,1) 1 2 ll]),[1 4 3 2]),[size(p_T_6,1)*ll 2])...
         + empty_vtx(:,aux_ind(1:size(p_T_6,1)*ll))';
@@ -66,9 +63,6 @@ for l=1:B_nt
     elseif s == 7/10
         Pint_final = -2*real(atan(rs.^(1/10))+(-1)^(1/10)*((-1)^(1/5)*atanh((-rs).^(1/10))+(-1)^(4/5)*atanh((-1)^(3/10)*(rs).^(1/10))+atanh((-1)^(7/10)*(rs).^(1/10))+ (-1)^(3/5)*atanh((-1)^(9/10)*rs.^(1/10))));
     else
-%         Psi_int = @(t) t.^s./(t+1);
-%         PINT = cellfun(@(x) Psi_int(0:1/64:x),rs,'UniformOutput',false);
-%         Pint_final = cellfun(@(x,y) (x^s)/s - (x/(3*length(y)-1))*(y(1)+2*sum(y(3:2:end-2))+4*sum(y(2:2:end))+y(end)),rs,PINT,'UniformOutput',false);
           Pint_final = rs.^(s).*hgeom2f1_eval(1,s,s+1,-rs)/s;
     end
     B(l,empty) = 8*B_area(l)*B_area((empty(1:ll)))'.*((phiB*(Pint_final.*norms(:,1:ll).^(s-1))));
@@ -89,4 +83,3 @@ for l=1:B_nt
     end
 end
 B = kns*(B+B');
-toc;
